@@ -17,12 +17,16 @@
  * All rights reserved.
  *
  *
- *This example uses polling method to read SW2 pin status
- *WHile SW2 button is pressed then green led should turn on
- *otherwise it should turn off.
+ *This example uses polling method to read SW2 and SW3 pin status
+ *While both buttons are not pressed Systems status will be open circuit and current equals to 0
+ *While SW2 button is pressed then System status is short circuit and current equals to MAX
+ *While SW3 button is pressed then System status is load increasing until reach max value of current
  */
 
 #include "freemaster.h"
+#include "sdk_project_config.h"
+#include "stdbool.h"
+#include "pins_driver.h"
 
 #define EVB
 #ifdef EVB
@@ -47,28 +51,28 @@
 
 #endif
 
-#include "sdk_project_config.h"
-#include "stdbool.h"
-#include "pins_driver.h"
 
+/* Buttons global variable definition and initialization*/
 volatile bool BtnSW2_Status =false ;   /*boolean type data to store btn status*/
 volatile bool BtnSW3_Status =false ;   /*boolean type data to store btn status*/
 
-pins_channel_type_t result1;         /*custom tyoe to receive read_pin value*/
-pins_channel_type_t result2;         /*custom tyoe to receive read_pin value*/
+
+pins_channel_type_t result1;         /*custom type to receive SW2_PIN value*/
+pins_channel_type_t result2;         /*custom type to receive SW3_PIN value*/
 
 typedef enum
 {
-	circuito_abierto,
-	corto_circuito,
-	load_increasing,
-	unknown
+	unknown = 0,
+	open_circuit = 5,
+	short_circuit = 10,
+	load_increasing = 15
 }Estado_t;
 
-
+/* Macros for MAX or MIN current*/
 #define MIN 0
 #define MAX 50
 
+/* System global variables */
 unsigned char load;
 Estado_t System_Status;
 
@@ -96,9 +100,12 @@ int main(void)
 	PINS_DRV_SetPins(LED1_PORT, 1 << LED1_PIN);
 
 
+	/* LPUART1 initialization*/
 	LPUART_DRV_Init(INST_LPUART_1, &lpUartState1, &lpuart_1_InitConfig0);
 
 	INT_SYS_InstallHandler(LPUART1_RxTx_IRQn, FMSTR_Isr, NULL);
+
+	/*Freemaster Init*/
 
 	FMSTR_Init();
 
@@ -106,16 +113,15 @@ int main(void)
 	for (;;)
 	{
 
+		//Btn_Polling operations
 
-
-		//Btn_Status
 		/*To get a specific bit position status we make a bit mask operation with & simbol*/
 		result1 = (PINS_DRV_ReadPins(SW2_PORT) & (1 << SW2_PIN));
 		BtnSW2_Status = (bool)(result1);           /*cast to variable result*/
 
-
 		result2 = (PINS_DRV_ReadPins(SW3_PORT) & (1 << SW3_PIN));
 		BtnSW3_Status = (bool)(result2);           /*cast to variable result*/
+
 
 		FMSTR_Poll();
 
@@ -124,22 +130,23 @@ int main(void)
 		if(BtnSW2_Status)
 		{
 			load = MAX;
-			System_Status = corto_circuito;
+			System_Status = short_circuit;
 
 		}
 		else if(BtnSW3_Status)
 		{
 
+
 			if(load==MAX)
 			{
 				load=MAX;
-				System_Status = corto_circuito;
+				System_Status = short_circuit;
 			}
 
 			else{
-				delay(150000);//720000
+				delay(150000);
 
-				load++;;
+				load++;
 				System_Status = load_increasing;
 
 			}
@@ -147,13 +154,12 @@ int main(void)
 
 		else{
 
-			load = 0;
+			load = MIN;
 
-			System_Status = circuito_abierto;
+			System_Status = open_circuit;
 
 		}
 
-		//delay(720000);
 
 
 	}
