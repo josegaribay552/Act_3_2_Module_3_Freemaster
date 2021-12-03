@@ -1,0 +1,44 @@
+**************************************************************
+ACTIVIDAD 3.2 HERRAMIENTAS DE EMULACIÓN DE SOFTWARE EMBEBIDO
+**************************************************************
+
+[OBJETIVO]
+
+- Emular por medio de la tarjeta S32K144EVB las siguientes condiciones en un sistema:
+
+  1) Circuito abierto (corriente = 0)
+  2) Corto circuito (corriente máxima)
+  3) Incremento gradual de carga
+
+
+[IMPLEMENTACIÓN]
+
+- Definir en el proyecto de S32 Design Studio 2 variables:
+
+|      NOMBRE      |			TIPO			    |
+|------------------|------------------------------------------------|
+|      Carga	   |  unsigned char ó unsigned short ó unsigned int |
+|------------------|------------------------------------------------|
+|      Estado      |  enum, con las 3 condiciones posibles.	    |
+|------------------|------------------------------------------------|
+
+- Usar los 2 botones de la tarjeta cómo sigue:
+
+  -> Ningún botón presionado: Circuito abierto, carga = 0
+  -> Botón 1 presionado: Corto circuito, carga sube al valor máximo y se mantiene mientras no se suelte el botón. Al soltar regresa a 0.
+  -> Botón 2 presionado: Incremento de carga. La variable carga se incrementa constantemente mientras el botón siga presionado. Al soltar regresa a 0.
+
+
+- Conectarse por medio de FreeMASTER y visualizar las variables:
+
+  -> Carga: Mostrar en el Osciloscopio ó con el Recorder. Se deben observar las 3 condiciones al menos 1 vez cada una.
+  -> Estado: Agregar en la vista de "Variable watch". En todo momento el valor debe coincidir con el estado de los botones.
+
+
+[ENTREGABLES]
+
+  1) ZIP incluyendo los 2 proyectos:
+	-> Proyecto de Design Studio
+	-> Proyecto de FreeMASTER
+
+  2) Reporte, con una descripción general y screenshots de la elaboración de la práctica, durante la implementación y los resultados.
